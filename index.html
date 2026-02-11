@@ -386,8 +386,7 @@
     </button>
     
     <!-- Audio de fondo -->
-    <!-- INSTRUCCIONES: Reemplaza el link entre comillas con tu URL de música -->
-    <!-- Puede ser: archivo local (musica.mp3) o URL directa de YouTube, SoundCloud, etc -->
+    
     <audio id="bgMusic" loop>
         <source src="music.mp3" type="audio/mpeg">
     </audio>
@@ -548,7 +547,7 @@
                     musicaActiva = true;
                 })
                 .catch(() => {
-                    // Si el navegador bloquea autoplay, esperar interacción del usuario
+                   
                     console.log('Autoplay bloqueado. Haz clic en el botón de música.');
                 });
         }
@@ -558,7 +557,7 @@
             setTimeout(intentarAutoplay, 1000);
         });
         
-        // También intentar al primer clic en cualquier parte
+       
         let primerClick = true;
         document.addEventListener('click', () => {
             if (primerClick && !musicaActiva) {
@@ -632,3 +631,4 @@
 </body>
 
 </html> 
+
