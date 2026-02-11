@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Un Momento Especial</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ===== VARIABLES Y RESET ===== */
+        :root {
+            --color-deep-black: #0a0a0f;
+            --color-dark-purple: #1a0f2e;
+            --color-mid-purple: #2d1b4e;
+            --color-bright-purple: #6b3fa0;
+            --color-neon-purple: #b388ff;
+            --color-soft-violet: #ce93d8;
+            
+            --font-display: 'Cinzel', serif;
+            --font-body: 'Cormorant Garamond', serif;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: var(--font-body);
+            background: linear-gradient(135deg, var(--color-deep-black) 0%, var(--color-dark-purple) 50%, var(--color-mid-purple) 100%);
+            background-attachment: fixed;
+            color: #f0e7f7;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+        
+        /* ===== CANVAS DE PARTÍCULAS ===== */
+        #particles-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+        
+        /* ===== CONTENEDOR PRINCIPAL ===== */
+        .container {
+            position: relative;
+            z-index: 10;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        .screen {
+            display: none;
+            opacity: 0;
+            text-align: center;
+            max-width: 800px;
+            width: 100%;
+        }
+        
+        .screen.active {
+            display: block;
+            animation: fadeIn 1.5s ease-out forwards;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* ===== TIPOGRAFÍA ===== */
+        h1 {
+            font-family: var(--font-display);
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 600;
+            margin-bottom: 2rem;
+            line-height: 1.3;
+            text-shadow: 0 0 20px rgba(179, 136, 255, 0.5),
+                         0 0 40px rgba(179, 136, 255, 0.3);
+            letter-spacing: 0.05em;
+        }
+        
+        .typewriter {
+            font-size: clamp(1.3rem, 3vw, 2rem);
+            font-weight: 300;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 3rem;
+        }
+        
+        .typewriter-text {
+            border-right: 2px solid var(--color-neon-purple);
+            animation: blink 0.8s step-end infinite;
+            padding-right: 5px;
+        }
+        
+        @keyframes blink {
+            50% { border-color: transparent; }
+        }
+        
+        .poem-text {
+            font-size: clamp(1.4rem, 3vw, 2.2rem);
+            font-weight: 300;
+            line-height: 1.8;
+            margin-bottom: 3rem;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+        
+        .message {
+            font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+            font-weight: 300;
+            line-height: 1.7;
+            margin-bottom: 2.5rem;
+            opacity: 0;
+            animation: fadeInText 2s ease-out 0.5s forwards;
+        }
+        
+        @keyframes fadeInText {
+            to { opacity: 1; }
+        }
+        
+        .birthday-name {
+            font-family: var(--font-display);
+            font-size: clamp(2.5rem, 6vw, 4rem);
+            background: linear-gradient(135deg, var(--color-neon-purple), var(--color-soft-violet));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 2rem 0;
+            animation: glow 3s ease-in-out infinite;
+        }
+        
+        @keyframes glow {
+            0%, 100% {
+                filter: drop-shadow(0 0 20px rgba(179, 136, 255, 0.6));
+            }
+            50% {
+                filter: drop-shadow(0 0 40px rgba(179, 136, 255, 0.9));
+            }
+        }
+        
+        .signature {
+            font-size: clamp(1.1rem, 2vw, 1.5rem);
+            font-style: italic;
+            opacity: 0.9;
+            margin-top: 2rem;
+        }
+        
+        /* ===== BOTONES ===== */
+        .btn {
+            display: inline-block;
+            padding: 1rem 2.5rem;
+            margin: 1rem 0.5rem;
+            font-family: var(--font-display);
+            font-size: 1.1rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--color-neon-purple);
+            background: transparent;
+            border: 2px solid var(--color-bright-purple);
+            border-radius: 0;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s ease;
+            text-decoration: none;
+        }
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: var(--color-bright-purple);
+            transform: translate(-50%, -50%);
+            transition: width 0.5s ease, height 0.5s ease;
+            z-index: -1;
+            border-radius: 50%;
+        }
+        
+        .btn:hover {
+            color: #fff;
+            border-color: var(--color-neon-purple);
+            box-shadow: 0 0 30px rgba(179, 136, 255, 0.5);
+        }
+        
+        .btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+        
+        .btn:active {
+            transform: scale(0.95);
+        }
+        
+        /* ===== BOTÓN DE MÚSICA ===== */
+        .music-btn {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(45, 27, 78, 0.8);
+            border: 2px solid var(--color-bright-purple);
+            cursor: pointer;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .music-btn:hover {
+            background: rgba(107, 63, 160, 0.9);
+            box-shadow: 0 0 30px rgba(179, 136, 255, 0.6);
+            transform: scale(1.1);
+        }
+        
+        .music-icon {
+            width: 24px;
+            height: 24px;
+            fill: var(--color-neon-purple);
+        }
+        
+        .music-btn.playing .music-icon {
+            animation: pulse 1s ease infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+        
+        /* ===== PARTÍCULAS DE CLIC ===== */
+        .click-particle {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            animation: particleFloat 2s ease-out forwards;
+        }
+        
+        @keyframes particleFloat {
+            0% {
+                opacity: 1;
+                transform: translate(0, 0) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(var(--tx), var(--ty)) scale(0);
+            }
+        }
+        
+        /* ===== IMAGEN ESPECIAL ===== */
+        .special-image-container {
+            margin-top: 3rem;
+            opacity: 0;
+            animation: imageReveal 2s ease-out 1s forwards;
+        }
+        
+        @keyframes imageReveal {
+            0% {
+                opacity: 0;
+                transform: scale(0.8) rotateY(90deg);
+                filter: blur(10px);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) rotateY(0deg);
+                filter: blur(0);
+            }
+        }
+        
+        .special-image {
+            max-width: 400px;
+            width: 100%;
+            height: auto;
+            border-radius: 15px;
+            box-shadow: 0 0 40px rgba(179, 136, 255, 0.4),
+                        0 0 80px rgba(179, 136, 255, 0.2);
+            animation: floatImage 6s ease-in-out infinite;
+            transition: transform 0.3s ease;
+        }
+        
+        @keyframes floatImage {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+        
+        .special-image:hover {
+            transform: scale(1.05) !important;
+            box-shadow: 0 0 60px rgba(179, 136, 255, 0.6),
+                        0 0 120px rgba(179, 136, 255, 0.3);
+        }
+        
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1.5rem;
+            }
+            
+            .btn {
+                padding: 0.8rem 2rem;
+                font-size: 1rem;
+                margin: 0.8rem 0.3rem;
+            }
+            
+            .music-btn {
+                bottom: 1.5rem;
+                right: 1.5rem;
+                width: 50px;
+                height: 50px;
+            }
+            
+            .poem-text,
+            .message {
+                margin-bottom: 2rem;
+            }
+            
+            .special-image {
+                max-width: 280px;
+            }
+        }
+        
+        /* ===== EFECTOS ESPECIALES ===== */
+        .sparkle {
+            position: fixed;
+            width: 3px;
+            height: 3px;
+            background: var(--color-neon-purple);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 5;
+            animation: sparkleAnim 3s ease-out infinite;
+        }
+        
+        @keyframes sparkleAnim {
+            0% {
+                opacity: 0;
+                transform: scale(0);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Canvas para partículas de fondo -->
+    <canvas id="particles-canvas"></canvas>
+    
+    <!-- Botón de música -->
+    <button class="music-btn" id="musicBtn" title="Música de fondo">
+        <svg class="music-icon" viewBox="0 0 24 24">
+            <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+        </svg>
+    </button>
+    
+    <!-- Audio de fondo -->
+    <!-- INSTRUCCIONES: Reemplaza el link entre comillas con tu URL de música -->
+    <!-- Puede ser: archivo local (musica.mp3) o URL directa de YouTube, SoundCloud, etc -->
+    <audio id="bgMusic" loop>
+        <source src="music.mp3" type="audio/mpeg">
+    </audio>
+    
+    <div class="container">
+        <!-- Pantalla 1: Introducción -->
+        <div class="screen active" id="screen1">
+            <div class="typewriter">
+                <span class="typewriter-text" id="typewriterText"></span>
+            </div>
+            <button class="btn" id="btn1">Descubrir</button>
+        </div>
+        
+        <!-- Pantalla 2: Mensaje poético -->
+        <div class="screen" id="screen2">
+            <p class="poem-text">
+                Entre millones de instantes,<br>
+                hay algunos que brillan distinto.<br>
+                <br>
+                Tú eres uno de ellos.
+            </p>
+            <button class="btn" id="btn2">Un poco más...</button>
+        </div>
+        
+        <!-- Pantalla 3: Mensaje especial -->
+        <div class="screen" id="screen3">
+            <p class="message">
+                Ojalá este sea el comienzo<br>
+                de muchos días y momentos compartidos contigo.
+            </p>
+            <button class="btn" id="btn3">Continuar</button>
+        </div>
+        
+        <!-- Pantalla 4: Cierre con cumpleaños -->
+        <div class="screen" id="screen4">
+            <h1>Feliz Cumpleaños</h1>
+            <div class="birthday-name"> KATA-RINA ✨</div>
+            <p class="signature">— 👻</p>
+            
+            <!-- Imagen especial (reemplaza 'tu-imagen.png' con la ruta de tu imagen) -->
+            <div class="special-image-container">
+                <img src="imagen.png" alt="Imagen especial" class="special-image">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== CONFIGURACIÓN =====
+        const texto = "Este día quise hacer algo diferente…";
+        let indice = 0;
+        let pantallaActual = 1;
+        
+        // ===== EFECTO MÁQUINA DE ESCRIBIR =====
+        function escribirTexto() {
+            const elemento = document.getElementById('typewriterText');
+            if (indice < texto.length) {
+                elemento.textContent += texto.charAt(indice);
+                indice++;
+                setTimeout(escribirTexto, 80);
+            }
+        }
+        
+        // Iniciar al cargar
+        window.addEventListener('load', () => {
+            setTimeout(escribirTexto, 500);
+        });
+        
+        // ===== NAVEGACIÓN ENTRE PANTALLAS =====
+        function cambiarPantalla(siguiente) {
+            const actual = document.getElementById(`screen${pantallaActual}`);
+            const nuevaPantalla = document.getElementById(`screen${siguiente}`);
+            
+            actual.style.animation = 'fadeIn 0.8s ease-out reverse';
+            
+            setTimeout(() => {
+                actual.classList.remove('active');
+                nuevaPantalla.classList.add('active');
+                pantallaActual = siguiente;
+            }, 800);
+        }
+        
+        // Event listeners para botones
+        document.getElementById('btn1').addEventListener('click', () => cambiarPantalla(2));
+        document.getElementById('btn2').addEventListener('click', () => cambiarPantalla(3));
+        document.getElementById('btn3').addEventListener('click', () => cambiarPantalla(4));
+        
+        // ===== SISTEMA DE PARTÍCULAS (CANVAS) =====
+        const canvas = document.getElementById('particles-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+        
+        class Particula {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 0.5;
+                this.speedX = (Math.random() - 0.5) * 0.5;
+                this.speedY = (Math.random() - 0.5) * 0.5;
+                this.opacity = Math.random() * 0.5 + 0.3;
+            }
+            
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                
+                if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+            }
+            
+            draw() {
+                ctx.fillStyle = `rgba(179, 136, 255, ${this.opacity})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Brillo sutil
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = 'rgba(179, 136, 255, 0.5)';
+            }
+        }
+        
+        // Crear partículas
+        const particulas = [];
+        for (let i = 0; i < 100; i++) {
+            particulas.push(new Particula());
+        }
+        
+        function animarParticulas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            particulas.forEach(particula => {
+                particula.update();
+                particula.draw();
+            });
+            
+            requestAnimationFrame(animarParticulas);
+        }
+        
+        animarParticulas();
+        
+        // ===== MÚSICA DE FONDO (AUTOPLAY) =====
+        const musicBtn = document.getElementById('musicBtn');
+        const bgMusic = document.getElementById('bgMusic');
+        let musicaActiva = false;
+        
+        // Intentar reproducir automáticamente
+        function intentarAutoplay() {
+            bgMusic.play()
+                .then(() => {
+                    musicBtn.classList.add('playing');
+                    musicaActiva = true;
+                })
+                .catch(() => {
+                    // Si el navegador bloquea autoplay, esperar interacción del usuario
+                    console.log('Autoplay bloqueado. Haz clic en el botón de música.');
+                });
+        }
+        
+        // Intentar autoplay al cargar la página
+        window.addEventListener('load', () => {
+            setTimeout(intentarAutoplay, 1000);
+        });
+        
+        // También intentar al primer clic en cualquier parte
+        let primerClick = true;
+        document.addEventListener('click', () => {
+            if (primerClick && !musicaActiva) {
+                intentarAutoplay();
+                primerClick = false;
+            }
+        }, { once: true });
+        
+        // Control manual del botón
+        musicBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Evitar que active el evento de primer clic
+            if (musicaActiva) {
+                bgMusic.pause();
+                musicBtn.classList.remove('playing');
+                musicaActiva = false;
+            } else {
+                bgMusic.play();
+                musicBtn.classList.add('playing');
+                musicaActiva = true;
+            }
+        });
+        
+        // ===== PARTÍCULAS AL HACER CLIC =====
+        document.addEventListener('click', (e) => {
+            crearParticulasClick(e.clientX, e.clientY);
+        });
+        
+        function crearParticulasClick(x, y) {
+            const formas = ['❤', '✨', '⭐', '💜'];
+            const cantidadParticulas = 8;
+            
+            for (let i = 0; i < cantidadParticulas; i++) {
+                const particula = document.createElement('div');
+                particula.className = 'click-particle';
+                particula.textContent = formas[Math.floor(Math.random() * formas.length)];
+                particula.style.left = x + 'px';
+                particula.style.top = y + 'px';
+                particula.style.fontSize = (Math.random() * 20 + 15) + 'px';
+                
+                const tx = (Math.random() - 0.5) * 200;
+                const ty = (Math.random() - 0.5) * 200 - 100;
+                particula.style.setProperty('--tx', tx + 'px');
+                particula.style.setProperty('--ty', ty + 'px');
+                
+                document.body.appendChild(particula);
+                
+                setTimeout(() => {
+                    particula.remove();
+                }, 2000);
+            }
+        }
+        
+        // ===== DESTELLOS ALEATORIOS =====
+        function crearDestello() {
+            const sparkle = document.createElement('div');
+            sparkle.className = 'sparkle';
+            sparkle.style.left = Math.random() * window.innerWidth + 'px';
+            sparkle.style.top = Math.random() * window.innerHeight + 'px';
+            sparkle.style.animationDelay = Math.random() * 2 + 's';
+            
+            document.body.appendChild(sparkle);
+            
+            setTimeout(() => {
+                sparkle.remove();
+            }, 3000);
+        }
+        
+        // Crear destellos periódicamente
+        setInterval(crearDestello, 800);
+    </script>
+</body>
+</html> 
